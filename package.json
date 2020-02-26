@@ -1,0 +1,55 @@
+{
+  "name": "reawt",
+  "version": "0.1.0",
+  "description": "React without React, Webpack and Babel, just raw vanilla Javascript !",
+  "main": "index.js",
+  "repository": "https://github.com/mikbry/reawt.git",
+  "author": "Mik <mik@mikbry.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "build": "rollup -c && packito",
+    "dev": "cross-env NODE_ENV=development serve ./",
+    "lint": "$(yarn bin)/eslint src",
+    "test": "cross-env NODE_ENV=test  $(yarn bin)/mocha  --require esm",
+    "coverage": "cross-env NODE_ENV=test  $(yarn bin)/nyc  _mocha",
+    "report-coverage": "$(yarn bin)/nyc report --reporter=text-lcov > coverage.lcov",
+    "prepublishOnly": "yarn build"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^8.2.0",
+    "@commitlint/config-conventional": "^8.2.0",
+    "@rollup/plugin-json": "^4.0.0",
+    "@rollup/plugin-node-resolve": "^6.0.0",
+    "cross-env": "^6.0.3",
+    "eslint": "^6.7.2",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-import": "^2.19.1",
+    "eslint-plugin-jest": "^23.1.1",
+    "eslint-plugin-prettier": "^3.1.1",
+    "esm": "^3.2.25",
+    "husky": "^3.1.0",
+    "mocha": "^6.2.2",
+    "nyc": "^14.1.1",
+    "packito": "^0.5.0",
+    "prettier": "^1.19.1",
+    "rimraf": "^3.0.0",
+    "rollup": "^1.27.9"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint",
+      "commit-msg": "[[ -n $HUSKY_BYPASS ]] || commitlint -E HUSKY_GIT_PARAMS"
+    },
+    "commitlint": {
+      "extends": [
+        "@commitlint/config-conventional"
+      ]
+    }
+  }
+}

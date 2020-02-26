@@ -1,0 +1,19 @@
+{
+  "remove": {
+    "devDependencies": "*",
+    "scripts": "*",
+    "type": true,
+    "esm": true,
+    "husky": true,
+    "commitlint": true
+  },
+  "replace": {
+    "main": "index.js",
+    "module": "index.mjs"
+  },
+  "publisher": {
+    "name": "yarn test"
+  },
+  "output": "./dist",
+  "copy": ["bin", "README.md", "LICENSE"]
+}
