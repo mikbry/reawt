@@ -6,9 +6,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+let reawt = null;
+
 class Reawt {
   constructor() {
     this.components = {};
+    this.applicationName = 'app';
+    this.prefix = this.applicationName;
+    this.states = {};
   }
 
   // It a template literals
@@ -17,24 +22,51 @@ class Reawt {
     // TODO
     this.strings = strings;
     this.parameters = parameters;
-    // console.log('strings=', strings, 'parameters', parameters);
+    console.log('strings=', strings, 'parameters', parameters);
     return strings[0].trim();
   }
 
-  render(component, _root) {
-    const root = _root;
+  render(component, root = document.body) {
     if (typeof component === 'function') {
       const { name } = component;
-      this.components[name] = component;
-      const element = component();
-      // console.log('name=', name, 'element=', element);
-      root.innerHTML = element;
+      const tagName = `${this.prefix}-${name}`.toLowerCase();
+      this.components[name] = {
+        name,
+        tagName,
+        func: component,
+        'class-def': class extends HTMLElement {
+          connectedCallback() {
+            reawt.connectedElement = this;
+            this.states = {};
+            const html = component();
+            this.innerHTML = html;
+            reawt.connectedElement = null;
+          }
+        },
+      };
+      // https://developers.google.com/web/fundamentals/web-components/customelements
+      customElements.define(tagName, this.components[name]['class-def']);
+      console.log('componentDef=', this.components[name]);
+      const element = document.createElement(tagName);
+      root.prepend(element);
     }
+  }
+
+  useState(_value) {
+    let value = _value;
+    const uid = 0; // TODO generate uid
+    const func = v => {
+      value = v;
+    }; // TODO
+    this.connectedElement.states[uid] = { value, func };
+    return [value, func];
   }
 }
 
-const instance = new Reawt();
+reawt = new Reawt();
+const instance = reawt;
 
-export const html = instance.createElement.bind(instance);
+export const html = reawt.createElement.bind(reawt);
+export const useState = reawt.useState.bind(reawt);
 
 export default instance;

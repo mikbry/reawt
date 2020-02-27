@@ -5,7 +5,8 @@
  * This source code is licensed under the license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import Reawt from './reawt.js';
-import Component from './components/main.js';
 
-Reawt.render(Component, document.getElementById('root'));
+import Reawt from './reawt.js';
+import Main from './main.js';
+
+Reawt.render(Main);
