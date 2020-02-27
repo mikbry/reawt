@@ -19,9 +19,11 @@ const CHUNK_END = 3; // = </TAGNAME>
 // eslint-disable-next-line import/prefer-default-export
 export const htxParse = (strings, ...params) => {
   // WIP
+  console.log('params=', params);
   let chunk = CHUNK_TEXT;
   let buffer = '';
   let currentTag;
+  let isQuote = false;
   const root = [];
   const children = root;
   let param = null;
@@ -50,27 +52,46 @@ export const htxParse = (strings, ...params) => {
       console.log('chunk_end=', currentTag.name, name);
       currentTag = undefined;
       chunk = CHUNK_TEXT;
+    } else if (chunk === CHUNK_ATTR && name.length) {
+      if (!currentTag.props) {
+        currentTag.props = {};
+      }
+      let value;
+      const eq = name.indexOf('=');
+      if (eq > 0) {
+        value = name.substring(eq + 1);
+        name = name.substring(0, eq);
+        if (typeof param === 'string') {
+          value += param;
+        } else if (param) {
+          value = param;
+        }
+      } else {
+        value = true;
+      }
+      console.log('chunk_attr=', name, value, eq);
+      currentTag.props[name] = value;
     }
     buffer = '';
   };
 
   strings.forEach((string, index) => {
     for (let char of string) {
-      if (char === '<' && chunk === CHUNK_TEXT) {
+      if (char === '<' && !isQuote && chunk === CHUNK_TEXT) {
         store(index);
         chunk = CHUNK_START;
         char = '';
-      } else if (char === '>' && (chunk === CHUNK_START || chunk === CHUNK_ATTR || chunk === CHUNK_END)) {
+      } else if (char === '>' && !isQuote && (chunk === CHUNK_START || chunk === CHUNK_ATTR || chunk === CHUNK_END)) {
         store(index);
         char = '';
         chunk = CHUNK_TEXT;
-      } else if (char <= '  ' && (chunk === CHUNK_START || chunk === CHUNK_END)) {
+      } else if (char <= '  ' && !isQuote && (chunk === CHUNK_START || chunk === CHUNK_END || chunk === CHUNK_ATTR)) {
         store(index);
         char = '';
         if (chunk === CHUNK_START) {
           chunk = CHUNK_ATTR;
         }
-      } else if (char === '/' && (chunk === CHUNK_START || chunk === CHUNK_ATTR)) {
+      } else if (char === '/' && !isQuote && (chunk === CHUNK_START || chunk === CHUNK_ATTR)) {
         if (!currentTag) {
           store(index);
         }
@@ -78,13 +99,21 @@ export const htxParse = (strings, ...params) => {
         store(index);
         chunk = CHUNK_END;
         char = '';
+      } else if (char === '"' && chunk === CHUNK_ATTR) {
+        isQuote = !isQuote;
+        char = '';
       }
       buffer += char;
       console.log('c=', char, 'buffer=', buffer, 'chunk=', chunk, 'index=', index);
     }
     param = params[index];
+    if (chunk === CHUNK_TEXT) {
+      if (typeof param === 'string') {
+        buffer += param;
+      }
+    }
   });
-  console.log('root=', root.length, 'buffer="', buffer, '"');
+  console.log(`root=${root.length} buffer='${buffer}'`);
   if (root.length === 1) {
     return root[0];
   }
